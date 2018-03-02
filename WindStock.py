@@ -20,18 +20,14 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 class WindStock(object):
-	"""拉取机构数据"""
+	"""拉取机构数据 2017-12-27修改数据源 修改数据源 bob_jie"""
 	def Get_Organization_Info(self,code,data,start_data,end_data,expend):
 		if code[0]=='0' or code[0]=='3':codenew = code+'.SZ'
  		else:codenew = code+'.SH'
 		#启动wind客户端
-		WindStock().Init_Wind()
+		Mysql().SaveMySqlFive(code,data,'test3',code+'stock_org_basics')
 
-		wsd_data = WindStock().Get_Wind_Info(codenew,data,start_data,end_data,expend)
-		#存入数据库
-		Mysql().SaveMySqlFive(code,wsd_data,'Organization_Basics_Info',code+'stock_org_basics')
-
-	"""拉取深证 上证数据"""
+	"""拉取深证 上证数据2017-12-27修改数据源 修改数据源 bob_jie"""
 	def Get_pct_chg_Info(self,code,data,start_data,end_data,expend):
 		if code[0]=='0' or code[0]=='3':codenew = code+'.SZ'
  		else:codenew = code+'.SH'
@@ -42,7 +38,26 @@ class WindStock(object):
 		wsd_data = WindStock().Get_Wind_Info(codenew,data,start_data,end_data,expend)
 
 		#存入数据库
-		Mysql().SaveMySqlSix(code,wsd_data,'Stock_Dasic_Data','stock_pct_chg')
+		Mysql().SaveMySqlSix(code,wsd_data,'test3','stock_org_basics_copy_new')
+		Get_Organization_Info
+
+
+
+	"""拉取深证 上证综指2018-02-02 bob_jie"""
+	def Get_sz_zz_Info(self,code,data,start_data,end_data,expend):
+		# if code[0]=='0' or code[0]=='3':codenew = code+'.SZ'
+ 	# 	else:codenew = code+'.SH'
+		#启动wind客户端
+		try:
+			WindStock().Init_Wind()
+
+			#拉取wind数据
+			wsd_data = WindStock().Get_Wind_Info(code,data,start_data,end_data,expend)
+
+			#存入数据库
+			Mysql().SaveMySqlSix(code,wsd_data,'zz_data','stock_zz_basics_'+code)
+		except Exception as e:
+			raise e
 
 	"""调用获取拉取信息端口"""
 	def Get_Wind_Info(self,code,data,start_data,end_data,expend):

@@ -17,7 +17,8 @@ import pandas as pd
 import os,sys
 import time
 import json
-from pandas.io.json import json_normalize  
+from pandas.io.json import json_normalize
+from pandas.io import sql
 
 #处理编码格式并把当前环境加入path
 reload(sys)
@@ -55,6 +56,8 @@ class SaveMySql(object):
 		if code:new_data = Formula().FormulaOneAll(data,code) 
 		else:new_data = Formula().FormulaOne(data)
 		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
+		# new_data.to_sql(tablename,Engine,if_exists='replace')
+		# new_data.to_sql(tablename,Engine,if_exists='replace',dtype={'date':VARCHAR(data.index.get_level_values('date').str.len().max())})
 		new_data.to_sql(tablename,Engine,if_exists='replace')
 
 	"""储存合并市盈率的数据"""
@@ -86,6 +89,16 @@ class SaveMySql(object):
 		#存入数据库
 		result.to_sql(tablename,Engine,if_exists='replace')
 
+	# """统计每个版块中个股的个数(2017-11-23 bob_jie)"""
+	# def SaveMySqlFour(self,data,dbname,tablename):
+	# 	Info = SaveMySql().ReadConfig()
+	# 	#处理统计个股的支数
+	# 	result = Formula().FormulaThree(data)
+
+	# 	# Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
+	# 	# #存入数据库
+	# 	# result.to_sql(tablename,Engine,if_exists='replace')
+
 	"""增加交易日的数据（2017-11-30 bob_jie)"""
 	def SaveMySqlThroue(self,data,dbname,tablename):
 		print dbname
@@ -111,7 +124,7 @@ class SaveMySql(object):
 		Requtes['code'] = code
 		
 		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
-		Requtes.to_sql(tablename,Engine,if_exists='replace')
+		Requtes.to_sql(tablename,Engine,if_exists='append')
 
 	"""增加上证指数（2017-12-14 bob_jie)"""
 	def SaveMySqlSix(self,code,wsd_data,dbname,tablename):
@@ -121,17 +134,53 @@ class SaveMySql(object):
 		Requtes=pd.DataFrame(wsd_data.Data,index=wsd_data.Fields,columns=wsd_data.Times)
 		Requtes=Requtes.T #将矩阵转置
 		Requtes['code'] = code
-
 		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
-		Requtes.to_sql(tablename,Engine,if_exists='replace')
+		Requtes.to_sql(tablename, Engine, if_exists='append')
+
+	def SaveMySqlSeven(self,dbname,tablename,data):
+		Info = SaveMySql().ReadConfig()
+		info = Formula().FormulaThrue(data)
+		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
+		info.to_sql(tablename, Engine, if_exists='replace')
+
+	def SaveMySqlEight(self,dbname,tablename,data):
+		Info = SaveMySql().ReadConfig()
+		info = Formula().FormulaFire(data)
+		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
+		info.to_sql(tablename, Engine, if_exists='append')
 
 
-
-
-	"""读取数据库获取字段code"""
+	"""读取数据库获取字段code(正块取出)"""
 	def ReadMySql(self,dbname,tablename):
 		Info = SaveMySql().ReadConfig()
 		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
 		df1 = pd.read_sql(tablename,Engine)
 		return df1
-	
+
+	"""sql读取数据库获取字段(正块取出)"""
+	def ReadsqlMysql(self,dbname,code):
+		Info = SaveMySql().ReadConfig()
+		Engine = create_engine('mysql://'+Info[1]+':'+Info[2]+'@'+Info[0]+'/'+dbname+'?charset=utf8')
+		sql= "SELECT * FROM test3.stock_org_basics_copy WHERE code="+code+" order by date_time"
+		df1 = pd.read_sql(sql,Engine)
+		return df1
+
+	"""读取数据库获取字段code（执行单一的sql语句）"""
+	def ReadMySqlTwo(self, dbname, tablename):
+		Info = SaveMySql().ReadConfig()
+		Engine = create_engine('mysql://' + Info[1] + ':' + Info[2] + '@' + Info[0] + '/' + dbname + '?charset=utf8')
+		sql = "select max(a.index),min(a.index) from %s a" % (tablename)
+		print sql
+		# df1 = pd.read_sql(tablename, Engine)
+		df1 = pd.read_sql(sql, Engine)
+		return df1
+
+	"""读取数据库获取字段code（执行sql语句）"""
+	def ReadMySqlThree(self, dbname, tablename):
+		Info = SaveMySql().ReadConfig()
+		Engine = create_engine('mysql://' + Info[1] + ':' + Info[2] + '@' + Info[0] + '/' + dbname + '?charset=utf8')
+		sql = "select * from %s where " % (tablename)
+		# df1 = pd.read_sql(tablename, Engine)
+		df1 = pd.read_sql('', Engine)
+		return df1
+

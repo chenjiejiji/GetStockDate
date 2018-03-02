@@ -95,6 +95,7 @@ class TushareStock(object):
  	"""拉取全部的股票信息"""
  	def Getstock_basics(self):
  		datateeeeeeee = ts.get_stock_basics()
+ 		# self.SaveCSV(datateeeeeeee, 'getstockbasics.csv')
  		#2017-11-27更新了这块代码
  		Mysql().SaveMySql(datateeeeeeee,
  			'Stock_Dasic_Data','stock_basics')
@@ -109,13 +110,30 @@ class TushareStock(object):
  	"""获取3年历史数据 （2017-11-01 修改了适配代码）"""
  	def Get_k_data(self,code,start,end):
  		data_h_data = ts.get_k_data(code,autype='qfq',start=start,end=end)
+ 		# #正式代码了这里
  		Mysql().SaveMySqlTWO(data_h_data,
  			'Stock_Basics_Info_All_New',code+'stock_basics')
+ 		# #调试代码
+ 		# Mysql().SaveMySqlTWO(data_h_data,
+ 		# 	'test',code+'stock_basics')
 
 
  	"""拉去5日 10日 20日数据(2017-10-30增加全部数据接口)"""
  	def Get_5_10_20_data(self,code,start,end):
  		data_5_data = ts.get_hist_data(code,start=start,end=end)		
+ 		#防止过多拉取数据源 网站屏蔽IP	
+ 		cons = ts.get_apis()
+ 		# 增加前复权 adj='qfq' 后复权 adj='hfq'（bob_jie ： 2017-11-01) 
+ 		data_5_data = ts.bar(code,conn=cons,start_date=start,adj='qfq',end_date=end,ma=[5, 10, 20],factors=['vr', 'tor'])
+ 		try:
+ 			data_5_data.values[0][0]
+ 		except Exception as e:
+ 			time.sleep(2)
+ 			#防止过多拉取数据源 网站屏蔽IP	
+ 			cons = ts.get_apis()
+ 			# 增加前复权 adj='qfq' 后复权 adj='hfq'（bob_jie ： 2017-11-01) 
+ 			data_5_data = ts.bar(code,conn=cons,start_date=start,adj='qfq',end_date=end,ma=[5, 10, 20],factors=['vr', 'tor'])
+ 		ts.get_h_data('002337',autype='qfq') 
  		Mysql().SaveMySqlTWO(data_5_data,'Stock_Basics_Info_All',code+'stock_basics',code)
 
  	"""拉去pe的数据(2017-11-21增加pe接口的数据源)"""
@@ -129,13 +147,16 @@ class TushareStock(object):
  		URL = 'https://api.wmcloud.com/data/v1//api/market/getMktEquPEJL.json?field=&secID='+codenew+'&startDate='+start+'&endDate='+end
  		Requtes = Requests().GetRequests(URL,headers = {"Authorization": "Bearer " + token,"Accept-Encoding": "gzip, deflate"})
 		#存取数据库 bob_jie 2017-11-21 正式代码
-		Mysql().SaveMySqlThree(Requtes,'Stock_Basics_Info_All_New',code+'stock_basics',code)
+		# Mysql().SaveMySqlThree(Requtes,'Stock_Basics_Info_All_New',code+'stock_basics',code)
+		#2017-11-27调试代码
+		Mysql().SaveMySqlThree(Requtes,'test',code+'stock_basics',code)
 
 
 	"""获取股票交易日期(2017-11-30增加交易日数据接口)"""
 	def Get_TradeCal_data(self,start,end):
  		token = "7f47d59fa3d950a1de2026fbbb72220681968623a43123bc4e2d732c7edeec75"
  		URL = 'https://api.wmcloud.com/data/v1//api/master/getTradeCal.json?field=&exchangeCD=XSHG,XSHE&beginDate='+start+'&endDate='+end
+ 		# /api/master/getTradeCal.json?field=&exchangeCD=XSHG,XSHE&beginDate=&endDate=
  		Requtes = Requests().GetRequests(URL,headers = {"Authorization": "Bearer " + token,"Accept-Encoding": "gzip, deflate"})
 
 		Mysql().SaveMySqlThroue(Requtes,'Stock_Dasic_Data','stock_TradeCal')
@@ -143,10 +164,34 @@ class TushareStock(object):
 	'''获取历史分笔数据（2017-12-07 增加历史分笔接口）'''
 	def Get_Tick_data(self):
 		df = ts.get_tick_data('600848',date='2014-01-09')
+		print type(df)
 		df.to_csv('G:/600848.csv')
 
- 	"""十大股东的数据（2017-12-11 振增加）"""
- 	def Get_Top10_holders(self):
+	"""拉去板块的数据(2017-11-23增加统计数据的个数)"""
+ 	def Get_BanKui_data(self,dbname,tablename):
+ 		#读取数据库板块信息
+ 		data = Mysql().ReadMySql(dbname,tablename)
+ 		Mysql().SaveMySqlFour(data,dbname,'stock_basics_plate')
+
+	"""十大股东的数据（2017-12-11 振增加）"""
+	def Get_Top10_holders(self):
 		df = ts.top10_holders('600848')
+		# print df
+		# print type(df)
 		obj_series_tuple=pd.Series(df,index=list('abcdefgsll'))
-		df.to_csv('G:/600848_holders.csv')
+		print obj_series_tuple
+		# df.to_csv('G:/600848_holders.csv')
+
+	"""计算归一值（2018-02-01)"""
+	def Get_guiyi(self,code):
+		data = Mysql().ReadMySql('test4','stock_org_basics_'+code)
+		Mysql().SaveMySqlSeven('test4','stock_org_basics_'+code,data)
+
+	"""计算概念板块(2018-02-27)"""
+	def Get_gnbk(self,code):
+		#做第一次操作
+		data = Mysql().ReadsqlMysql('test3',code)
+		#做第二个值的时候应该切换
+		# data = Mysql().ReadMySql('stock_gainian','stock_org_basics_'+code)
+		#库要做修改
+		Mysql().SaveMySqlEight('stock_gainian','stock_org_basics_new',data)

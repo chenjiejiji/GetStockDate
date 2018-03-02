@@ -1,4 +1,4 @@
-#! usr/bin/python
+ #! usr/bin/python
 #coding=utf-8   //这句是使用utf8编码方式方法， 可以单独加入python头使用。
 
 
@@ -204,8 +204,19 @@ class CleanDataSource(object):
 		DATAfive = dataSeveN.merge(dataeighT, left_on='DateTime', right_on='DateTime', how='outer')
 		DATAseven = DATAfive.merge(dataninE, left_on='DateTime', right_on='DateTime', how='outer')
 
+
+		# #测试代码
+		# CleanDataSource().CleanDataChenjieOne('000001.SZ',DATAtwo,DATAfour,DATAseven)
 		CleanDataSource().CleanDataChenjieOne('000022.SZ',DATAtwo,DATAfour,DATAseven)
 
+		#开启多线程
+		# pool = ThreadPoolExecutor(max_workers=40)  # 创建一个最大可容纳2个task的线程池(开启线程池)
+		# futures = []
+		# for code in DATAtwo.columns[1:]:
+		# 	futures.append(pool.submit(
+		# 		CleanDataSource().CleanDataChenjieOne,code,DATAtwo,DATAfour,DATAseven))
+		# print wait(futures)
+		# print "=============== data finish=================="
 
 	"""读取买入量 买入额的数据数据存取数据库 2017-11-28 bob_jie"""
 	def CleanDataChenjieOne(self,code,DATAtwo,DATAfour,DATAseven):
@@ -249,38 +260,172 @@ class CleanDataSource(object):
 		print "=============== data finish=================="
 
 
-	"""拉取wind拉取机构信息信息进入数据库 2017-12-13 bob_jie"""
+	"""拉取wind拉取机构信息信息进入数据库 2017-12-13 bob_jie """
 	def CleanDataOrgInfo(self,data,indexs):
-		# if data.loc[indexs].values[16] == 0:print "this stock don't timeToMarket"
-		# else:
-		WindInfo().Get_Organization_Info(data.loc[indexs].values[1],"total_shares,free_float_shares,close,volume,amt,pct_chg,turn,mfd_buyamt_d,mfd_sellamt_d,mfd_buyvol_d,mfd_sellvol_d,mfd_netbuyamt,mfd_netbuyvol,mfd_buyamt_a,mfd_sellamt_a,mfd_buyvol_a,mfd_sellvol_a,mfd_netbuyamt_a,mfd_netbuyvol_a,val_pe_deducted_ttm",
-				"2014-01-01",
-				"2017-12-10",
-				"unit=1;traderType=1;PriceAdj=F")
+		if data.loc[indexs].values[16] == 0:print "this stock don't timeToMarket"
+		else:
+			#最小的日期-1
+			StartTime = "2014-01-01"
+			EndTime = "2015-08-02"
+			code = data.loc[indexs].values[1]
+			# InfoDate = Mysql().ReadMySql('test3',code+'stock_org_basics')
+			InfoDate = Mysql().ReadMySqlTwo('test3', 'stock_org_basics_'+code)
+			if  EndTime == str(InfoDate['min(a.index)'][0]):
+				WindInfo().Get_pct_chg_Info(code,
+						"MFD_BUYAMT_D,MFD_SELLAMT_D,MFD_NETBUYAMT,MFD_BUYVOL_D,MFD_SELLVOL_D,MFD_NETBUYVOL,MFD_BUYAMT_A,MFD_SELLAMT_A,MFD_NETBUYAMT_A,MFD_BUYVOL_A,MFD_SELLVOL_A,MFD_NETBUYVOL_A,CLOSE,PCT_CHG,TOTAL_SHARES,FREE_FLOAT_SHARES,VOLUME, AMT,PE_TTM,VAL_PE_DEDUCTED_TTM",
+						StartTime,
+						EndTime,
+						"unit=1;traderType=1;PriceAdj=F")
+			if  EndTime == str(InfoDate['min(a.index)'][0]):
+                WindInfo().Get_pct_chg_Info(code,
+						"MFD_BUYAMT_D,MFD_SELLAMT_D,MFD_NETBUYAMT,MFD_BUYVOL_D,MFD_SELLVOL_D,MFD_NETBUYVOL,MFD_BUYAMT_A,MFD_SELLAMT_A,MFD_NETBUYAMT_A,MFD_BUYVOL_A,MFD_SELLVOL_A,MFD_NETBUYVOL_A,CLOSE,PCT_CHG,TOTAL_SHARES,FREE_FLOAT_SHARES,VOLUME, AMT,PE_TTM,VAL_PE_DEDUCTED_TTM",
+						StartTime,
+						EndTime,
+						"unit=1;traderType=1;PriceAdj=F")
+				print "code"
+				print "===============%d data data cunzai finish==================" % (indexs)
+		print "code"
 		print "===============%d data finish=================="%(indexs)
+
+	"""拉取wind拉取机构信息信息进入数据库 2018-02-28 bob_jie """
+	def CleanDataOrgInfoOne(self, data, indexs):
+		if data.loc[indexs].values[16] == 0:
+			print "this stock don't timeToMarket"
+		else:
+			# 最小的日期-1
+			StartTime = "2017-08-03"
+			EndTime = "2017-08-03"
+			# code = data.loc[indexs].values[1]
+			code = '000001'
+			# InfoDate = Mysql().ReadMySql('test3',code+'stock_org_basics')
+			InfoDate = Mysql().ReadMySqlTwo('test3', 'stock_org_basics_'+code)
+			if '2017-12-19' == str(InfoDate['max(a.index)'][0]):
+				WindInfo().Get_pct_chg_Info(code,
+						"",
+						StartTime,
+						EndTime,
+						"unit=1;traderType=1;PriceAdj=F")
+			else:
+					print "code"
+					print "===============%d data data cunzai finish==================" % (indexs)
+			print "code"
+			print "===============%d data finish==================" % (indexs)
+
+
+	"""拉取wind拉取机构信息信息进入数据库 2018-02-28 bob_jie """
+	def CleanDataOrgInfoTwo(self, data, indexs):
+		if data.loc[indexs].values[16] == 0:
+			print "this stock don't timeToMarket"
+		else:
+			# 最小的日期-1
+			StartTime = "2014-01-01"
+			EndTime = "2017-12-27"
+			# code = data.loc[indexs].values[1]
+			code = '000001'
+			# InfoDate = Mysql().ReadMySql('test3',code+'stock_org_basics')
+			InfoDate = Mysql().ReadMySqlTwo('test3', 'stock_org_basics_'+code)
+			WindInfo().Get_pct_chg_Info(code,
+						"high,low",
+						StartTime,
+						EndTime,
+						"unit=1;traderType=1;PriceAdj=F")
+			print "code"
+			print "===============%d data finish==================" % (indexs)
 
 	"""拉取wind拉取机构信息信息进入数据库 2017-12-13 bob_jie"""
 	def OrgData(self):
 		#获取股票列表信息
-		data = Mysql().ReadMySql('Stock_Dasic_Data','stock_basics')
-		#开启多线程
-		pool = ThreadPoolExecutor(max_workers=2)# 创建一个最大可容纳2个task的线程池(开启线程池)
+		data = Mysql().ReadMySql('test4','stock_basics')
+
+		for indexs in data.index:
+			try:
+				CleanDataSource().CleanDataOrgInfoTwo(data, indexs)
+			except:
+				continue;
+		print "=============== data finish=================="
+
+	"""拉取wind拉取机构信息信息进入数据库 2017-12-13 bob_jie """
+	def CleanDataOrgInfoTwo(self, data, indexs):
+		if data.loc[indexs].values[16] == 0:
+			print "this stock don't timeToMarket"
+		else:
+			# 最小的日期-1
+			StartTime = "2017-12-28"
+			EndTime = "2018-02-07"
+			code = data.loc[indexs].values[1]
+			WindInfo().Get_pct_chg_Info(code,
+											"MFD_BUYAMT_D,MFD_SELLAMT_D,MFD_NETBUYAMT,MFD_BUYVOL_D,MFD_SELLVOL_D,MFD_NETBUYVOL,MFD_BUYAMT_A,MFD_SELLAMT_A,MFD_NETBUYAMT_A,MFD_BUYVOL_A,MFD_SELLVOL_A,MFD_NETBUYVOL_A,CLOSE,PCT_CHG,TOTAL_SHARES,FREE_FLOAT_SHARES,VOLUME, AMT,PE_TTM,VAL_PE_DEDUCTED_TTM",
+											StartTime,
+											EndTime,
+											"unit=1;traderType=1;PriceAdj=F")
+			print "==============================================="
+			print "=====================%s========================" % (code)
+			print "===============%d data finish==================" % (indexs)
+
+	"""计算倍数50个字段 2018-03-02"""
+	def CleanDataOrg(self):
+		count = 1
+		#如果，确认这个表存在 2017-10-30
+		# StockInfo().Getstock_basics()
+		# data = Mysql().ReadMySql('test3','stock_basics')
+		data = Mysql().ReadMySql('stock_gainian','shaixuan')
+		pool = ThreadPoolExecutor(max_workers=2)  # 创建一个最大可容纳2个task的线程池(开启线程池)
 		futures = []
 		for indexs in data.index:
 			futures.append(pool.submit(
-				CleanDataSource().CleanDataOrgInfo,data,indexs))
+				CleanDataSource().CleanDataOrgInfoThree,data,indexs))
+		print wait(futures)
+
+
+	"""计算归一值 2018-02-21"""
+	def JshuanGY(self):
+		data = Mysql().ReadMySql('test4','stock_basics')
+		# data = Mysql().ReadMySql('stock_gainian','shaixuan')
+		pool = ThreadPoolExecutor(max_workers=0)# 创建一个最大可容纳2个task的线程池(开启线程池)
+		futures = []
+		errcode = []
+		i=0
+		for code in data['code']:
+			try:
+				StockInfo().Get_guiyi(code)
+				print "===============%d data finish=================="%(i)
+				i+=1
+			except:
+				errcode.append(code)
 		print wait(futures)
 		print "=============== data finish=================="
 
+	"""计算倍率 2018-03-01 bob_jie """
+	def CleanDataOrgInfoThree(self, data, indexs):
+		try:
+			# code = '300026'
+			code = data.loc[indexs].values[0]
+			print code
+			StockInfo().Get_gnbk(code)
+			print "==============================================="
+			print "=====================%s========================" % (code)
+			print "===============%d data finish==================" % (indexs)
+		except Exception as e:
+			raise e
 
 if __name__ == '__main__':
-	# CleanDataSource().CleanAllData()
-	# CleanDataSource().CleanData() 股票基础数据
-	# CleanDataSource().IntoData() 股票板块信息
-	# CleanDataSource().CleanDataAll()
-	# CleanDataSource().PeData() 股票市盈率
-	# CleanDataSource().StockBasicsData() 获取全市场股票信息
-	# CleanDataSource().CleanDataChenjieOne() 获取机构交易额
-	# CleanDataSource().ReadBasicsData() 获取股票机构买入量 买入额的数据 计算机构当日成交量
-	# CleanDataSource().CleanDataTradeCal() 拉取交易日信息
-	# CleanDataSource().OrgData() 拉取机构
+# 	CleanDataSource().ReadCSV(file_name="insttops.csv")
+# 	file_name="todayall.csv"
+# 	file_name="toplist.csv"
+# 	file_name="toplist.csv"
+# 	CleanDataSource().CleanData_One(file_name)
+# 	CleanDataSource().CleanData_Two(file_name)
+# 	CleanDataSource().CleanData_Three(file_name)
+# 	CleanDataSource().CleanAllData()
+# 	CleanDataSource().CleanData() 股票基础数据
+# 	CleanDataSource().IntoData() 股票板块信息
+# 	CleanDataSource().CleanDataAll()
+# 	CleanDataSource().PeData() 股票市盈率
+# 	CleanDataSource().StockBasicsData() 获取全市场股票信息
+# 	CleanDataSource().CleanDataChenjieOne() 获取机构交易额
+# 	CleanDataSource().ReadBasicsData() 获取股票机构买入量 买入额的数据 计算机构当日成交量
+# 	CleanDataSource().CleanDataTradeCal() 拉取交易日信息
+# 	CleanDataSource().OrgData() 拉取机构
+# 	CleanDataSource().JshuanGY()#归一值
+#	CleanDataSource().CleanDataOrg()#计算倍数
+
